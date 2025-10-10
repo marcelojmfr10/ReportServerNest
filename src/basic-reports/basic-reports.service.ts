@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
-import { getHelloWorldReport } from 'src/reports';
+import { getEmploymentLetterReport, getHelloWorldReport } from 'src/reports';
 
 @Injectable()
 export class BasicReportsService extends PrismaClient implements OnModuleInit {
@@ -17,6 +17,13 @@ export class BasicReportsService extends PrismaClient implements OnModuleInit {
 
     hello() {
         const docDefinition = getHelloWorldReport({name: 'Marcelo Fuentes'});
+
+        const doc = this.printerService.createPdf(docDefinition);
+        return doc;
+    }
+
+    employmentLetter() {
+                const docDefinition = getEmploymentLetterReport();
 
         const doc = this.printerService.createPdf(docDefinition);
         return doc;
