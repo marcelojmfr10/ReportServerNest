@@ -1,70 +1,79 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/prisma/client';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
-import { getCountriesReport, getEmploymentLetterByIdReport, getEmploymentLetterReport, getHelloWorldReport } from 'src/reports';
+import {
+  getCountriesReport,
+  getEmploymentLetterByIdReport,
+  getEmploymentLetterReport,
+  getHelloWorldReport,
+} from 'src/reports';
 
 @Injectable()
 export class BasicReportsService extends PrismaClient implements OnModuleInit {
-    async onModuleInit() {
-        await this.$connect();
-        // console.log('connected to database');
-    }
+  async onModuleInit() {
+    await this.$connect();
+    // console.log('connected to database');
+  }
 
-    constructor(private readonly printerService: PrinterService) {
-        super();
-    }
+  constructor(private readonly printerService: PrinterService) {
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL as string,
+    });
+    super({ adapter });
+  }
 
-    hello() {
-        const docDefinition = getHelloWorldReport({ name: 'Marcelo Fuentes' });
+  hello() {
+    const docDefinition = getHelloWorldReport({ name: 'Marcelo Fuentes' });
 
-        const doc = this.printerService.createPdf(docDefinition);
-        return doc;
-    }
+    const doc = this.printerService.createPdf(docDefinition);
+    return doc;
+  }
 
-    employmentLetter() {
-        const docDefinition = getEmploymentLetterReport();
+  employmentLetter() {
+    const docDefinition = getEmploymentLetterReport();
 
-        const doc = this.printerService.createPdf(docDefinition);
-        return doc;
-    }
+    const doc = this.printerService.createPdf(docDefinition);
+    return doc;
+  }
 
-    async employmentLetterById(employeeId: number) {
-        const employee = await this.employees.findUnique({
-            where: {
-                id: employeeId
-            }
-        });
+  async employmentLetterById(employeeId: number) {
+    const employee = await this.employees.findUnique({
+      where: {
+        id: employeeId,
+      },
+    });
 
-        if (!employee) throw new NotFoundException(`Employee with id ${employeeId} not found`);
+    if (!employee)
+      throw new NotFoundException(`Employee with id ${employeeId} not found`);
 
-        const docDefinition = getEmploymentLetterByIdReport({
-            employerName: 'Marcelo Fuentes',
-            employerPosition: 'Gerente de RRHH',
-            employeeName: employee.name,
-            employeePosition: employee.position,
-            employeeStartDate: employee.start_date,
-            employeeHours: employee.hours_per_day,
-            employeeWorkSchedule: employee.work_schedule,
-            employerCompany: 'Tucan Code Corp',
-        });
+    const docDefinition = getEmploymentLetterByIdReport({
+      employerName: 'Marcelo Fuentes',
+      employerPosition: 'Gerente de RRHH',
+      employeeName: employee.name,
+      employeePosition: employee.position,
+      employeeStartDate: employee.start_date,
+      employeeHours: employee.hours_per_day,
+      employeeWorkSchedule: employee.work_schedule,
+      employerCompany: 'Tucan Code Corp',
+    });
 
-        const doc = this.printerService.createPdf(docDefinition);
-        return doc;
-    }
+    const doc = this.printerService.createPdf(docDefinition);
+    return doc;
+  }
 
-    async getCountries() {
-        const countries = await this.countries.findMany({
-            where: {
-                local_name: {
-                    not: null,
-                }
-            }
-        });
-        const docDefinition = getCountriesReport({countries});
+  async getCountries() {
+    const countries = await this.countries.findMany({
+      where: {
+        local_name: {
+          not: null,
+        },
+      },
+    });
+    const docDefinition = getCountriesReport({ countries });
 
-        const doc = this.printerService.createPdf(docDefinition);
-        return doc;
-    }
-
+    const doc = this.printerService.createPdf(docDefinition);
+    return doc;
+  }
 }
