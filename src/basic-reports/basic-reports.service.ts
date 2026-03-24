@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../generated/prisma/client';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { PrinterService } from 'src/printer/printer.service';
+import { PrismaService } from 'src/prisma.service';
 import {
   getCountriesReport,
   getEmploymentLetterByIdReport,
@@ -11,18 +10,11 @@ import {
 } from 'src/reports';
 
 @Injectable()
-export class BasicReportsService extends PrismaClient implements OnModuleInit {
-  async onModuleInit() {
-    await this.$connect();
-    // console.log('connected to database');
-  }
-
-  constructor(private readonly printerService: PrinterService) {
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL as string,
-    });
-    super({ adapter });
-  }
+export class BasicReportsService {
+  constructor(
+    private readonly printerService: PrinterService,
+    private prisma: PrismaService,
+  ) {}
 
   hello() {
     const docDefinition = getHelloWorldReport({ name: 'Marcelo Fuentes' });
@@ -39,7 +31,7 @@ export class BasicReportsService extends PrismaClient implements OnModuleInit {
   }
 
   async employmentLetterById(employeeId: number) {
-    const employee = await this.employees.findUnique({
+    const employee = await this.prisma.employees.findUnique({
       where: {
         id: employeeId,
       },
@@ -64,7 +56,7 @@ export class BasicReportsService extends PrismaClient implements OnModuleInit {
   }
 
   async getCountries() {
-    const countries = await this.countries.findMany({
+    const countries = await this.prisma.countries.findMany({
       where: {
         local_name: {
           not: null,

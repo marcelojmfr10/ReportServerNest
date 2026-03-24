@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from 'generated/prisma/client';
 import { PrinterService } from 'src/printer/printer.service';
+import { PrismaService } from 'src/prisma.service';
 import {
   getBasicChartSvgReport,
   getHelloWorldReport,
@@ -10,20 +9,14 @@ import {
 } from 'src/reports';
 
 @Injectable()
-export class StoreReportsService extends PrismaClient implements OnModuleInit {
-  constructor(private readonly printerService: PrinterService) {
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL as string,
-    });
-    super({ adapter });
-  }
-
-  async onModuleInit() {
-    await this.$connect();
-  }
+export class StoreReportsService {
+  constructor(
+    private readonly printerService: PrinterService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getOrderByIdReport(orderId: number) {
-    const order = await this.orders.findUnique({
+    const order = await this.prisma.orders.findUnique({
       where: {
         order_id: orderId,
       },
@@ -55,7 +48,7 @@ export class StoreReportsService extends PrismaClient implements OnModuleInit {
   }
 
   async getStatistics() {
-    const topCountries = await this.customers.groupBy({
+    const topCountries = await this.prisma.customers.groupBy({
       by: ['country'],
       _count: {
         country: true,
