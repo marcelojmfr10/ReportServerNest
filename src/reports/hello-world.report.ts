@@ -1,14 +1,14 @@
-import { TDocumentDefinitions } from "pdfmake/interfaces";
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 interface ReportOptions {
-    name: string;
+  name: string;
 }
 
 export const getHelloWorldReport = (options: ReportOptions) => {
-    const { name } = options;
-    const docDefinition: TDocumentDefinitions = {
-        content: [`Hola mundo ${name}`]
-    };
+  const { name } = options;
+  const docDefinition: TDocumentDefinitions = {
+    content: [`Hola mundo ${name}`],
+  };
 
-    return docDefinition;
-}
+  return docDefinition;
+};
