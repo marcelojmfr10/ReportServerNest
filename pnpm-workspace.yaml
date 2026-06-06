@@ -1,0 +1,6 @@
+minimumReleaseAge: 1440
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/engines': true
+  '@swc/core': true
+  prisma: true
